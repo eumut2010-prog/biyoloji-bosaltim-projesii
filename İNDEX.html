@@ -1,0 +1,1053 @@
+
+<!DOCTYPE html>
+<html lang="tr" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İnsan Boşaltım Sistemi | İnteraktif Biyoloji Atlası</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+ theme: {
+  extend: {
+   fontFamily: {
+    sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+    mono: ['"JetBrains Mono"', 'monospace']
+   }
+  }
+ }
+}
+</script>
+
+<style>
+*{box-sizing:border-box}
+html{scroll-padding-top:100px}
+body{background:#0b1528;color:#f1f5f9;font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden}
+.editorial-grid{background-color:#0e1a30;background-image:radial-gradient(rgba(148,163,184,.10) 1px,transparent 1px);background-size:24px 24px}
+.glass{background:rgba(19,34,61,.92);backdrop-filter:blur(14px)}
+.section-kicker{color:#38bdf8;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em}
+.section-heading{font-size:clamp(24px,3vw,34px);line-height:1.2;font-weight:800;letter-spacing:-.035em}
+.section-intro{color:#94a3b8;font-size:14px;line-height:1.8;max-width:720px}
+.info-card{background:#13223d;border:1px solid #1e365c;border-radius:18px;padding:18px;transition:.2s}
+.info-card:hover{border-color:rgba(56,189,248,.5);transform:translateY(-2px)}
+.soft-panel{background:#0e1a30;border:1px solid #1e365c;border-radius:18px}
+.nav-link{color:#aebbd0;font-size:12px;font-weight:700;padding:10px 13px;border-radius:11px;white-space:nowrap;transition:.2s}
+.nav-link:hover,.nav-link.active{color:#7dd3fc;background:#1a3055}
+.mobile-link{display:block;padding:13px 15px;color:#cbd5e1;border-radius:12px;font-size:13px;font-weight:700}
+.mobile-link:hover{background:#1a3055;color:#7dd3fc}
+input[type=range]{appearance:none;width:100%;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:#1e365c}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border-radius:50%;background:#38bdf8;border:3px solid #0b1528;margin-top:-6px}
+.organ-pin{position:absolute;transform:translate(-50%,-50%);z-index:10;transition:.2s}
+.organ-pin:hover{transform:translate(-50%,-50%) scale(1.08);z-index:20}
+.organ-card-btn.selected{border-color:#38bdf8;background:#1a3055;box-shadow:0 0 0 1px #38bdf8}
+.nephron-stage-btn{white-space:nowrap;transition:.2s}
+.stat-number{font-size:25px;font-weight:800;letter-spacing:-.04em}
+.mini-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
+.explanation-panel{background:linear-gradient(145deg,#142744,#0e1a30);border:1px solid #2b4b75;border-radius:20px;padding:20px;min-height:190px;animation:panelIn .25s ease}
+@keyframes panelIn{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.explanation-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:#38bdf8;font-weight:700}
+.explanation-title{font-size:18px;font-weight:800;line-height:1.35;margin-top:10px}
+.explanation-text{font-size:13px;line-height:1.85;color:#cbd5e1;margin-top:12px}
+#nephron-canvas{display:block;width:100%;height:100%}
+@media(max-width:640px){
+ .section-padding{padding-top:52px;padding-bottom:52px}
+ #kidney-3d-wrapper{height:370px}
+ #nephron-canvas{min-height:350px}
+}
+</style>
+</head>
+
+<body class="antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+<!-- NAVBAR -->
+<header class="sticky top-0 z-50 border-b border-[#1e365c] glass">
+ <div class="max-w-7xl mx-auto px-4 sm:px-6">
+  <div class="h-[72px] flex items-center justify-between gap-4">
+   <a href="#anasayfa" class="flex items-center gap-3 min-w-0">
+    <div class="w-10 h-10 shrink-0 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-300">
+     <i class="fa-solid fa-dna text-lg"></i>
+    </div>
+    <div class="min-w-0">
+     <div class="font-extrabold text-sm sm:text-base tracking-tight text-white truncate">Biyoloji Atlası</div>
+     <div class="text-[10px] sm:text-[11px] text-slate-400 font-mono">İNSAN BOŞALTIM SİSTEMİ</div>
+    </div>
+   </a>
+
+   <nav class="hidden lg:flex items-center gap-1 bg-[#0b1528]/70 p-1.5 rounded-2xl border border-[#1e365c]">
+    <a href="#anatomi" class="nav-link">Böbrek Anatomisi</a>
+    <a href="#nefron" class="nav-link">Nefron</a>
+    <a href="#homeostazi" class="nav-link">ADH Laboratuvarı</a>
+    <a href="#test" class="nav-link">Bilgi Testi</a>
+   </nav>
+
+   <div class="flex items-center gap-2">
+    <a href="#anatomi" class="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-[#08101e] text-xs font-extrabold transition">
+     Keşfet <i class="fa-solid fa-arrow-down"></i>
+    </a>
+    <button id="mobile-menu-button" onclick="toggleMobileMenu()" class="lg:hidden w-10 h-10 rounded-xl border border-[#1e365c] bg-[#13223d] text-slate-200 flex items-center justify-center">
+     <i id="mobile-menu-icon" class="fa-solid fa-bars"></i>
+    </button>
+   </div>
+  </div>
+
+  <div id="mobile-menu" class="hidden lg:hidden pb-4">
+   <div class="bg-[#0b1528] border border-[#1e365c] rounded-2xl p-2 grid gap-1">
+    <a class="mobile-link" href="#anatomi" onclick="closeMobileMenu()">01 · Böbrek Anatomisi</a>
+    <a class="mobile-link" href="#nefron" onclick="closeMobileMenu()">02 · Nefronun Yapısı</a>
+    <a class="mobile-link" href="#homeostazi" onclick="closeMobileMenu()">03 · ADH Laboratuvarı</a>
+    <a class="mobile-link" href="#test" onclick="closeMobileMenu()">04 · Bilgi Testi</a>
+   </div>
+  </div>
+ </div>
+</header>
+
+<!-- HERO -->
+<section id="anasayfa" class="editorial-grid border-b border-[#1e365c]">
+ <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+  <div class="grid lg:grid-cols-12 gap-10 items-center">
+   <div class="lg:col-span-7">
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-400/25 text-sky-300 text-[11px] font-bold mb-5">
+     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+     İNTERAKTİF BİYOLOJİ ÖĞRENME MODÜLÜ
+    </div>
+    <h1 class="text-4xl sm:text-5xl lg:text-[58px] leading-[1.08] font-extrabold tracking-tight mb-5">
+     Vücudun <span class="text-sky-400">arıtma</span> sistemi.
+    </h1>
+    <p class="text-slate-300 text-sm sm:text-base leading-8 max-w-2xl">
+     Böbreklerin yapısını üç boyutlu olarak incele. Nefron boyunca gerçekleşen süzülme, geri emilim ve salgılama olaylarını keşfet. Ardından su dengesi ve ADH hormonunun çalışma mekanizmasını interaktif deneylerle öğren.
+    </p>
+    <div class="flex flex-wrap gap-3 mt-7">
+     <a href="#anatomi" class="px-5 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-[#08101e] font-extrabold text-xs transition flex items-center gap-2">
+      <i class="fa-solid fa-cube"></i> Böbreği İncele
+     </a>
+     <a href="#nefron" class="px-5 py-3 rounded-xl bg-[#1a3055] hover:bg-[#233d6b] border border-[#29466f] text-slate-100 font-bold text-xs transition flex items-center gap-2">
+      <i class="fa-solid fa-route"></i> Nefronu Keşfet
+     </a>
+    </div>
+   </div>
+
+   <div class="lg:col-span-5">
+    <div class="relative bg-[#13223d] border border-[#1e365c] rounded-3xl p-5 sm:p-6 overflow-hidden">
+     <div class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-sky-500/10 blur-3xl"></div>
+     <div class="relative">
+      <div class="flex items-center justify-between mb-5">
+       <span class="text-xs font-bold text-slate-200">Böbreklerin temel görevleri</span>
+       <i class="fa-solid fa-heart-pulse text-sky-400"></i>
+      </div>
+      <div class="space-y-4">
+       <div class="flex gap-3 items-start">
+        <div class="w-9 h-9 shrink-0 rounded-xl bg-rose-500/15 text-rose-300 flex items-center justify-center"><i class="fa-solid fa-filter"></i></div>
+        <div><div class="text-sm font-bold">Kanı süzmek</div><p class="text-xs text-slate-400 leading-relaxed mt-1">Kandaki atık maddelerin ve fazla suyun uzaklaştırılmasına yardımcı olur.</p></div>
+       </div>
+       <div class="flex gap-3 items-start">
+        <div class="w-9 h-9 shrink-0 rounded-xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center"><i class="fa-solid fa-scale-balanced"></i></div>
+        <div><div class="text-sm font-bold">İç dengeyi korumak</div><p class="text-xs text-slate-400 leading-relaxed mt-1">Su, mineral ve asit-baz dengesinin düzenlenmesinde görev alır.</p></div>
+       </div>
+       <div class="flex gap-3 items-start">
+        <div class="w-9 h-9 shrink-0 rounded-xl bg-amber-500/15 text-amber-300 flex items-center justify-center"><i class="fa-solid fa-vial"></i></div>
+        <div><div class="text-sm font-bold">İdrar oluşturmak</div><p class="text-xs text-slate-400 leading-relaxed mt-1">Atıklar, fazla su ve iyonlar idrar yoluyla vücuttan uzaklaştırılır.</p></div>
+       </div>
+      </div>
+      <div class="mt-6 pt-4 border-t border-[#29466f] grid grid-cols-3 gap-2 text-center">
+       <div><div class="stat-number text-sky-300">~180 L</div><div class="mini-label mt-1">Günlük süzüntü</div></div>
+       <div><div class="stat-number text-emerald-300">~1-2 L</div><div class="mini-label mt-1">Günlük idrar</div></div>
+       <div><div class="stat-number text-rose-300">~1 M</div><div class="mini-label mt-1">Her böbrekte nefron</div></div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-10">
+   <div class="soft-panel p-4 flex gap-3 items-center"><i class="fa-solid fa-droplet text-sky-400 text-xl"></i><div><div class="text-xs font-bold">Su dengesi</div><div class="text-[11px] text-slate-400 mt-1">Vücudun sıvı kontrolü</div></div></div>
+   <div class="soft-panel p-4 flex gap-3 items-center"><i class="fa-solid fa-flask text-emerald-400 text-xl"></i><div><div class="text-xs font-bold">Atık uzaklaştırma</div><div class="text-[11px] text-slate-400 mt-1">Üre ve diğer atıkların atılması</div></div></div>
+   <div class="soft-panel p-4 flex gap-3 items-center"><i class="fa-solid fa-arrows-rotate text-purple-400 text-xl"></i><div><div class="text-xs font-bold">Homeostazi</div><div class="text-[11px] text-slate-400 mt-1">İç ortamın dengede tutulması</div></div></div>
+  </div>
+ </div>
+</section>
+
+<!-- ANATOMİ -->
+<section id="anatomi" class="py-12 sm:py-16 border-b border-[#1e365c]">
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+ <div class="mb-7">
+  <span class="section-kicker">BÖLÜM 01 · MAKRO ANATOMİ</span>
+  <h2 class="section-heading mt-2">Böbreğin iç yapısını keşfet</h2>
+  <p class="section-intro mt-3">Böbrek, kanı süzerek idrar oluşumunu sağlayan temel boşaltım organıdır. Modeli döndürerek farklı açılardan inceleyebilir, soldaki yapılardan birine tıklayarak açıklamasını görüntüleyebilirsin.</p>
+ </div>
+
+ <div class="grid lg:grid-cols-12 gap-5 items-stretch">
+  <div class="lg:col-span-4 flex flex-col gap-3">
+   <div class="soft-panel p-4">
+    <div class="flex items-center gap-2 mb-3">
+     <i class="fa-solid fa-book-open text-sky-400"></i>
+     <span class="text-sm font-extrabold">İncelemek istediğin yapıyı seç</span>
+    </div>
+    <div id="anatomy-cards-list" class="space-y-2"></div>
+   </div>
+
+   <!-- YALNIZCA SEÇİLEN YAPININ AÇIKLAMASI BURADA GÖRÜNÜR -->
+   <div id="organ-explanation" class="explanation-panel">
+    <div class="explanation-label"><i class="fa-solid fa-circle-info mr-1"></i> SEÇİLİ YAPININ AÇIKLAMASI</div>
+    <div class="explanation-title" id="selected-organ-title">Kabuk Bölgesi (Korteks)</div>
+    <div class="inline-flex mt-2 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-rose-500/15 text-rose-300 border border-rose-400/30" id="selected-organ-badge">Dış Tabaka</div>
+    <p id="selected-organ-desc" class="explanation-text"></p>
+   </div>
+
+   <div class="info-card">
+    <div class="flex items-center gap-2 text-sky-300 text-xs font-bold mb-2"><i class="fa-solid fa-lightbulb"></i> BİLİYOR MUYDUN?</div>
+    <p class="text-xs text-slate-300 leading-relaxed">Böbreğin temel işlevsel birimi nefrondur. Her böbrekte yaklaşık bir milyon nefron bulunabilir. Nefronlar kanın süzülmesi ve idrarın oluşturulmasından sorumludur.</p>
+   </div>
+  </div>
+
+  <div class="lg:col-span-8 bg-[#13223d] rounded-3xl border border-[#1e365c] overflow-hidden shadow-lg">
+   <div class="px-4 py-3 bg-[#13223d] border-b border-[#1e365c] flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span><span class="text-xs font-bold">3B Böbrek Modeli</span></div>
+    <div class="flex gap-2">
+     <button onclick="toggleKidneyCutaway()" class="px-3 py-2 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-400/30 text-[11px] font-bold"><span id="cutaway-label">Korteks Şeffaflığı: Açık</span></button>
+     <button onclick="resetKidneyCamera()" class="w-9 rounded-lg bg-[#1a3055] border border-[#29466f] text-slate-200" title="Kamerayı sıfırla"><i class="fa-solid fa-rotate-right"></i></button>
+    </div>
+   </div>
+   <div class="relative h-[390px] sm:h-[470px] bg-gradient-to-b from-[#0d1a30] to-[#12223d]" id="kidney-3d-wrapper">
+    <div id="kidney-3d-container" class="w-full h-full"></div>
+    <div id="kidney-pins-layer" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+    <div class="absolute bottom-3 left-3 right-3 flex flex-wrap justify-center gap-x-5 gap-y-2 px-3 py-2 rounded-xl bg-[#0b1528]/90 border border-[#1e365c] text-[10px] text-slate-300 pointer-events-none">
+     <span><i class="fa-solid fa-circle text-rose-500 mr-1"></i>Korteks</span>
+     <span><i class="fa-solid fa-circle text-rose-800 mr-1"></i>Medulla</span>
+     <span><i class="fa-solid fa-circle text-amber-400 mr-1"></i>Pelvis</span>
+    </div>
+   </div>
+   <div class="px-5 py-4 border-t border-[#1e365c] bg-[#0e1a30]">
+    <p class="text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-computer-mouse text-sky-400 mr-1"></i> Modeli döndürmek için sürükle, yakınlaştırmak veya uzaklaştırmak için fare tekerleğini kullan. Soldaki listeden seçtiğin yapının açıklaması ayrı panelde gösterilir.</p>
+   </div>
+  </div>
+ </div>
+
+ <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-5">
+  <div class="info-card"><div class="text-rose-300 text-lg mb-2"><i class="fa-solid fa-circle-nodes"></i></div><h3 class="font-bold text-sm mb-1">Korteks</h3><p class="text-xs text-slate-400 leading-relaxed">Böbreğin dış tabakasıdır. Glomerulus ve Bowman kapsülü gibi süzülmede görevli yapılar burada bulunur.</p></div>
+  <div class="info-card"><div class="text-purple-300 text-lg mb-2"><i class="fa-solid fa-mountain"></i></div><h3 class="font-bold text-sm mb-1">Medulla</h3><p class="text-xs text-slate-400 leading-relaxed">Böbreğin iç bölgesidir. Henle kulpları ve toplama kanallarının önemli kısımları burada uzanır.</p></div>
+  <div class="info-card"><div class="text-amber-300 text-lg mb-2"><i class="fa-solid fa-funnel"></i></div><h3 class="font-bold text-sm mb-1">Böbrek havuzcuğu</h3><p class="text-xs text-slate-400 leading-relaxed">Oluşan idrarı üretere aktarılmadan önce toplayan huni biçimli yapıdır.</p></div>
+ </div>
+</div>
+</section>
+
+<!-- NEFRON -->
+<section id="nefron" class="py-12 sm:py-16 bg-[#0e1a30] border-b border-[#1e365c]">
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+ <div class="mb-7">
+  <span class="section-kicker">BÖLÜM 02 · MİKRO ANATOMİ</span>
+  <h2 class="section-heading mt-2">Nefron: idrarın oluştuğu yer</h2>
+  <p class="section-intro mt-3">Nefron, böbreğin mikroskobik çalışma birimidir. İdrar oluşumu üç temel olayla gerçekleşir: süzülme, geri emilim ve salgılama. Aşağıdaki aşamalara tıklayarak her olayın farklı hareketini gözlemleyebilirsin.</p>
+ </div>
+
+ <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+  <div class="info-card flex gap-3"><div class="w-9 h-9 shrink-0 rounded-xl bg-amber-500/15 text-amber-300 flex items-center justify-center"><i class="fa-solid fa-filter"></i></div><div><h3 class="text-sm font-bold">Süzülme</h3><p class="text-xs text-slate-400 mt-1 leading-relaxed">Kan plazmasındaki su ve küçük moleküller Bowman kapsülüne geçer.</p></div></div>
+  <div class="info-card flex gap-3"><div class="w-9 h-9 shrink-0 rounded-xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center"><i class="fa-solid fa-rotate-left"></i></div><div><h3 class="text-sm font-bold">Geri emilim</h3><p class="text-xs text-slate-400 mt-1 leading-relaxed">Vücuda gerekli maddeler nefron kanalından çevredeki kana döner.</p></div></div>
+  <div class="info-card flex gap-3"><div class="w-9 h-9 shrink-0 rounded-xl bg-purple-500/15 text-purple-300 flex items-center justify-center"><i class="fa-solid fa-arrow-right-arrow-left"></i></div><div><h3 class="text-sm font-bold">Salgılama</h3><p class="text-xs text-slate-400 mt-1 leading-relaxed">Bazı atıklar ve iyonlar kandan nefron kanalına aktarılır.</p></div></div>
+ </div>
+
+ <div class="flex flex-wrap gap-2 mb-4 bg-[#13223d] p-2 rounded-2xl border border-[#1e365c] w-fit">
+  <button onclick="setNephronStage('all')" id="stage-btn-all" class="nephron-stage-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-sky-500 text-[#08101e]">Tüm Süreç</button>
+  <button onclick="setNephronStage('filtration')" id="stage-btn-filtration" class="nephron-stage-btn px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300">1. Süzülme</button>
+  <button onclick="setNephronStage('reabsorption')" id="stage-btn-reabsorption" class="nephron-stage-btn px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300">2. Geri Emilim</button>
+  <button onclick="setNephronStage('secretion')" id="stage-btn-secretion" class="nephron-stage-btn px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300">3. Salgılama</button>
+ </div>
+
+ <div class="grid lg:grid-cols-12 gap-5">
+  <div class="lg:col-span-8 bg-[#13223d] rounded-3xl border border-[#1e365c] overflow-hidden">
+   <div class="px-4 py-3 bg-[#13223d] border-b border-[#1e365c] flex flex-wrap justify-between gap-2">
+    <span class="text-xs font-bold"><i class="fa-solid fa-route text-sky-400 mr-2"></i>Nefron Akış Simülasyonu</span>
+    <div class="flex flex-wrap gap-3 text-[10px] text-slate-300">
+     <span><i class="fa-solid fa-circle text-amber-400 mr-1"></i>Süzüntü</span>
+     <span><i class="fa-solid fa-circle text-emerald-400 mr-1"></i>Geri emilim</span>
+     <span><i class="fa-solid fa-circle text-purple-400 mr-1"></i>Salgılama</span>
+    </div>
+   </div>
+   <div class="h-[360px] sm:h-[430px]">
+    <canvas id="nephron-canvas"></canvas>
+   </div>
+   <div class="px-5 py-4 border-t border-[#1e365c] bg-[#0e1a30]">
+    <p id="nephron-canvas-caption" class="text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-circle-info text-sky-400 mr-1"></i> Her renk farklı bir madde hareketini gösterir. Aşama seçerek parçacıkların yönünü ve hareketini ayrı ayrı inceleyebilirsin.</p>
+   </div>
+  </div>
+
+  <div class="lg:col-span-4 bg-[#13223d] rounded-3xl border border-[#1e365c] p-5 sm:p-6 flex flex-col justify-between">
+   <div id="nephron-stage-info"></div>
+   <div class="mt-5 pt-4 border-t border-[#1e365c]">
+    <div class="text-xs font-bold text-sky-300 mb-2"><i class="fa-solid fa-graduation-cap mr-1"></i> Önemli bilgi</div>
+    <p class="text-xs text-slate-400 leading-relaxed">Sağlıklı bir insanda glikoz süzülür; ancak normal koşullarda proksimal tüpte büyük ölçüde geri emildiği için idrarda bulunmaz.</p>
+   </div>
+  </div>
+ </div>
+
+ <div class="mt-5 grid md:grid-cols-2 gap-4">
+  <div class="info-card"><h3 class="text-sm font-extrabold text-sky-300 mb-2">Süzülme sırasında ne olur?</h3><p class="text-xs text-slate-300 leading-relaxed">Glomerulus kılcallarındaki kan basıncı sayesinde su ve küçük moleküller Bowman kapsülüne geçer. Kan hücreleri ve büyük plazma proteinleri normal koşullarda süzülme zarını aşamaz. Bu olayda ATP harcanmaz.</p></div>
+  <div class="info-card"><h3 class="text-sm font-extrabold text-emerald-300 mb-2">Geri emilim neden gereklidir?</h3><p class="text-xs text-slate-300 leading-relaxed">Süzüntüde bulunan glikoz, amino asitler, su ve gerekli iyonların önemli bir bölümü kana geri kazandırılır. Böylece vücut için yararlı maddelerin gereksiz yere kaybedilmesi önlenir.</p></div>
+ </div>
+</div>
+</section>
+
+<!-- ADH -->
+<section id="homeostazi" class="py-12 sm:py-16 editorial-grid border-b border-[#1e365c]">
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+ <div class="mb-7">
+  <span class="section-kicker">BÖLÜM 03 · HORMONAL DÜZENLEME</span>
+  <h2 class="section-heading mt-2">Su dengesi ve ADH laboratuvarı</h2>
+  <p class="section-intro mt-3">Vücudun su miktarı değiştiğinde böbrekler idrarın miktarını ve yoğunluğunu ayarlar. Bu düzenlemede ADH hormonu önemli rol oynar. Su alımı senaryosunu değiştirerek sistemin nasıl tepki verdiğini gözlemle.</p>
+ </div>
+
+ <div class="soft-panel p-4 sm:p-5 mb-5">
+  <div class="flex gap-3 items-start">
+   <div class="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-300 flex items-center justify-center shrink-0"><i class="fa-solid fa-brain text-lg"></i></div>
+   <div>
+    <h3 class="text-sm font-extrabold">ADH hormonu nasıl çalışır?</h3>
+    <p class="text-xs text-slate-400 leading-relaxed mt-1">Kandaki ozmotik basınç arttığında hipotalamustaki algılayıcılar durumu fark eder. ADH hipotalamusta üretilir, hipofizin arka lobunda depolanır ve buradan kana salınır. Böbrek toplama kanallarında suyun geri emilimini artırarak su kaybını azaltır.</p>
+   </div>
+  </div>
+ </div>
+
+ <div class="grid lg:grid-cols-12 gap-5">
+  <div class="lg:col-span-5 bg-[#13223d] rounded-3xl border border-[#1e365c] p-5 sm:p-6 space-y-6">
+   <div class="flex items-center justify-between gap-2 border-b border-[#1e365c] pb-4">
+    <div><div class="text-sm font-extrabold">Su tüketim senaryosu</div><div class="text-[11px] text-slate-400 mt-1">Simülasyon için bir durum seç</div></div>
+    <i class="fa-solid fa-glass-water text-sky-400 text-xl"></i>
+   </div>
+   <div class="grid grid-cols-3 gap-2">
+    <button onclick="setWaterPreset(0.6)" class="rounded-xl px-2 py-3 bg-amber-500/10 border border-amber-400/25 text-amber-300 text-[11px] font-bold hover:bg-amber-500/20">Az su</button>
+    <button onclick="setWaterPreset(2.0)" class="rounded-xl px-2 py-3 bg-[#1a3055] border border-[#29466f] text-slate-200 text-[11px] font-bold hover:bg-[#233d6b]">Normal</button>
+    <button onclick="setWaterPreset(4.0)" class="rounded-xl px-2 py-3 bg-sky-500/10 border border-sky-400/25 text-sky-300 text-[11px] font-bold hover:bg-sky-500/20">Fazla su</button>
+   </div>
+   <div>
+    <div class="flex justify-between items-center mb-3">
+     <label for="slider-water" class="text-sm font-bold"><i class="fa-solid fa-droplet text-sky-400 mr-2"></i>Günlük su alımı</label>
+     <span id="label-water" class="font-mono text-sm font-bold text-sky-300">2.0 Litre</span>
+    </div>
+    <input id="slider-water" type="range" min="0.4" max="4.5" step="0.1" value="2.0" oninput="updateHomeostaziLab()">
+    <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-2"><span>0.4 L</span><span>2.0 L</span><span>4.5 L</span></div>
+   </div>
+   <div class="soft-panel p-4">
+    <div class="text-xs font-bold text-sky-300 mb-2">Deneyin amacı</div>
+    <p class="text-xs text-slate-400 leading-relaxed">Su alımındaki değişimin kanın ozmotik dengesi, ADH salgısı ve idrar oluşumu üzerindeki etkisini gözlemle. Sonuçlar öğretici bir modeldir; gerçek kişisel idrar miktarını tahmin etmez.</p>
+   </div>
+  </div>
+
+  <div class="lg:col-span-7 bg-[#13223d] rounded-3xl border border-[#1e365c] p-5 sm:p-6 space-y-5">
+   <div class="grid sm:grid-cols-2 gap-3">
+    <div class="soft-panel p-4"><div class="mini-label">Kan ozmotik durumu</div><div id="out-osmotic" class="text-lg font-extrabold mt-2">Normal</div></div>
+    <div class="soft-panel p-4"><div class="mini-label">ADH salgı düzeyi</div><div id="out-adh" class="text-lg font-extrabold text-sky-300 mt-2">Dengeli</div></div>
+   </div>
+   <div class="soft-panel p-5 grid sm:grid-cols-12 gap-5 items-center">
+    <div class="sm:col-span-4 flex flex-col items-center">
+     <div class="relative w-20 h-36 rounded-b-3xl rounded-t-lg border-2 border-[#29466f] bg-[#0b1528] overflow-hidden flex items-end">
+      <div id="urine-liquid-fill" class="w-full transition-all duration-500 rounded-b-2xl" style="height:55%;background:#fde047"></div>
+     </div>
+     <div id="out-urine-vol" class="font-mono text-xs font-bold mt-3">Model: Orta miktar</div>
+     <div id="out-urine-conc" class="text-[10px] text-slate-400 mt-1">Normal yoğunluk</div>
+    </div>
+    <div class="sm:col-span-8">
+     <div class="text-xs font-bold text-sky-300 mb-2"><i class="fa-solid fa-microscope mr-1"></i> Simülasyon sonucu</div>
+     <p id="out-feedback-text" class="text-sm text-slate-300 leading-relaxed"></p>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div class="grid md:grid-cols-2 gap-4 mt-5">
+  <div class="info-card"><h3 class="text-sm font-bold text-amber-300 mb-2">Vücutta su azaldığında</h3><p class="text-xs text-slate-400 leading-relaxed">Kanın ozmotik basıncı yükselir. ADH salgısı artar ve toplama kanallarından daha fazla su geri emilir. Böylece idrar miktarı azalır ve idrar daha yoğun hâle gelir.</p></div>
+  <div class="info-card"><h3 class="text-sm font-bold text-sky-300 mb-2">Vücutta su arttığında</h3><p class="text-xs text-slate-400 leading-relaxed">Kanın ozmotik basıncı düşer. ADH salgısı azalır. Daha az su geri emildiği için daha fazla miktarda ve daha seyreltik idrar oluşturulur.</p></div>
+ </div>
+</div>
+</section>
+
+<!-- TEST -->
+<section id="test" class="py-12 sm:py-16">
+<div class="max-w-4xl mx-auto px-4 sm:px-6">
+ <div class="text-center mb-8">
+  <span class="section-kicker">BÖLÜM 04 · KENDİNİ DENE</span>
+  <h2 class="section-heading mt-2">Bilgini test et</h2>
+  <p class="section-intro mx-auto mt-3">Öğrendiklerini pekiştirmek için beş soruluk mini testi çöz. Her sorudan sonra doğru cevabı ve açıklamasını görebilirsin.</p>
+ </div>
+
+ <div class="grid grid-cols-3 gap-3 mb-5">
+  <div class="info-card text-center"><div class="text-sky-300 text-xl mb-1"><i class="fa-solid fa-list-check"></i></div><div class="text-xs font-bold">5 Soru</div><div class="text-[10px] text-slate-500 mt-1">Mini değerlendirme</div></div>
+  <div class="info-card text-center"><div class="text-emerald-300 text-xl mb-1"><i class="fa-solid fa-circle-check"></i></div><div class="text-xs font-bold">Anında sonuç</div><div class="text-[10px] text-slate-500 mt-1">Cevap kontrolü</div></div>
+  <div class="info-card text-center"><div class="text-amber-300 text-xl mb-1"><i class="fa-solid fa-book-open"></i></div><div class="text-xs font-bold">Açıklamalı</div><div class="text-[10px] text-slate-500 mt-1">Öğrenme desteği</div></div>
+ </div>
+
+ <div class="bg-[#13223d] rounded-3xl border border-[#1e365c] p-6 sm:p-8" id="check-container">
+  <div class="flex justify-between items-center text-xs font-mono text-slate-400 mb-4"><span id="check-step-label">Soru 1 / 5</span><span id="check-score-label" class="font-bold text-sky-400">Doğru: 0</span></div>
+  <div class="h-1.5 rounded-full bg-[#0b1528] overflow-hidden mb-6"><div id="quiz-progress" class="h-full bg-sky-400 rounded-full transition-all" style="width:20%"></div></div>
+  <h3 id="check-question-text" class="text-base sm:text-lg font-bold leading-relaxed mb-5">Yükleniyor...</h3>
+  <div id="check-options-list" class="space-y-2.5"></div>
+  <div id="check-feedback-box" class="hidden mt-5 p-4 rounded-2xl text-sm leading-relaxed border"></div>
+  <div class="mt-6 pt-4 border-t border-[#1e365c] flex items-center justify-between gap-3">
+   <button onclick="resetConceptCheck()" class="text-xs font-semibold text-slate-400 hover:text-white"><i class="fa-solid fa-rotate-left mr-1"></i> Baştan başla</button>
+   <button id="check-next-btn" onclick="nextConceptQuestion()" class="hidden px-5 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-[#08101e] text-xs font-extrabold">Sonraki soru <i class="fa-solid fa-arrow-right ml-1"></i></button>
+  </div>
+ </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-[#08101e] border-t border-[#1e365c]">
+ <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+  <div class="grid md:grid-cols-2 gap-6 items-center">
+   <div>
+    <div class="flex items-center gap-2 text-sky-300 mb-2"><i class="fa-solid fa-dna"></i><span class="text-sm font-extrabold">İnsan Boşaltım Sistemi</span></div>
+    <p class="text-xs text-slate-500 leading-relaxed max-w-md">Böbrek anatomisi, nefron fizyolojisi ve hormonal düzenleme konularını interaktif olarak incelemek için hazırlanmış biyoloji eğitim modülü.</p>
+   </div>
+   <div class="md:text-right">
+    <p class="text-sm font-bold text-slate-300">11/A • Umut Özev • 624</p>
+    <p class="text-[10px] text-slate-600 mt-2">Biyoloji Proje Ödevi · 2026</p>
+   </div>
+  </div>
+ </div>
+</footer>
+
+<script>
+// MOBİL MENÜ
+function toggleMobileMenu(){
+ const menu=document.getElementById('mobile-menu');
+ const icon=document.getElementById('mobile-menu-icon');
+ menu.classList.toggle('hidden');
+ icon.className=menu.classList.contains('hidden')?'fa-solid fa-bars':'fa-solid fa-xmark';
+}
+function closeMobileMenu(){
+ document.getElementById('mobile-menu').classList.add('hidden');
+ document.getElementById('mobile-menu-icon').className='fa-solid fa-bars';
+}
+
+// BÖBREK ANATOMİSİ
+const KIDNEY_STRUCTURES=[
+ {id:'korteks',title:'Kabuk Bölgesi (Korteks)',badge:'Dış Tabaka',desc:'Böbreğin en dış bölümüdür. Glomerulus ve Bowman kapsülünden oluşan Malpighi cisimcikleri ile proksimal ve distal kıvrımlı kanalcıkların önemli bölümleri burada bulunur.',pin3D:[-1.8,1.1,.4]},
+ {id:'medulla',title:'Öz Bölgesi (Medulla)',badge:'İç Tabaka',desc:'Böbreğin iç kısmıdır. Piramit biçimli yapılardan oluşur. Henle kulpları ve idrar toplama kanalları bu bölgede ilerler.',pin3D:[-1.4,-.1,.3]},
+ {id:'havuzcuk',title:'Böbrek Havuzcuğu',badge:'Pelvis Renalis',desc:'Böbrek piramitlerinden gelen idrarın toplandığı huni biçimli bölümdür. İdrar buradan üretere aktarılır.',pin3D:[-.6,-.3,.3]},
+ {id:'artery',title:'Böbrek Atardamarı',badge:'Renal Arter',desc:'Böbreğe kan getirir. Bu kan oksijenin yanında hücresel faaliyetler sonucu oluşan atık maddeleri de taşır.',pin3D:[-2.5,.5,.2]},
+ {id:'vein',title:'Böbrek Toplardamarı',badge:'Renal Ven',desc:'Böbrekte işlem gören kanı böbrekten uzaklaştırarak genel dolaşıma geri taşır.',pin3D:[-2.5,-.5,.2]}
+];
+
+let kScene,kCamera,kRenderer,kControls,kidneyGroup,cortexMesh;
+let activeOrganId='korteks';
+let isCutawayActive=true;
+let kidneyPinEls=[];
+
+function initKidney3D(){
+ const container=document.getElementById('kidney-3d-container');
+ if(!container||!window.THREE)return;
+
+ kScene=new THREE.Scene();
+ kScene.background=new THREE.Color(0x0d1a30);
+ kCamera=new THREE.PerspectiveCamera(45,container.clientWidth/container.clientHeight,.1,1000);
+ kCamera.position.set(0,1.2,8.5);
+
+ kRenderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
+ kRenderer.setSize(container.clientWidth,container.clientHeight);
+ kRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+ container.appendChild(kRenderer.domElement);
+
+ if(THREE.OrbitControls){
+  kControls=new THREE.OrbitControls(kCamera,kRenderer.domElement);
+  kControls.enableDamping=true;
+  kControls.dampingFactor=.05;
+ }
+
+ kScene.add(new THREE.AmbientLight(0x64748b,1.5));
+ const sun=new THREE.DirectionalLight(0xffffff,1.8);
+ sun.position.set(5,8,5);kScene.add(sun);
+ const rim=new THREE.DirectionalLight(0x38bdf8,1);
+ rim.position.set(-5,-5,-3);kScene.add(rim);
+
+ buildTrueAnatomicalKidney();
+ renderAnatomyCards();
+ buildKidneyPins();
+ selectOrganStructure('korteks');
+ window.addEventListener('resize',resizeKidney);
+}
+
+function resizeKidney(){
+ const container=document.getElementById('kidney-3d-container');
+ if(!container||!kCamera||!kRenderer)return;
+ kCamera.aspect=container.clientWidth/container.clientHeight;
+ kCamera.updateProjectionMatrix();
+ kRenderer.setSize(container.clientWidth,container.clientHeight);
+}
+
+function buildTrueAnatomicalKidney(){
+ kidneyGroup=new THREE.Group();
+ const shape=new THREE.Shape();
+ shape.moveTo(0,1.9);
+ shape.bezierCurveTo(1.5,1.9,2.1,1,2.1,0);
+ shape.bezierCurveTo(2.1,-1.2,1.4,-2,0,-2);
+ shape.bezierCurveTo(-.6,-1.5,-.7,-.6,-.8,0);
+ shape.bezierCurveTo(-.9,.7,-.7,1.4,0,1.9);
+
+ const geo=new THREE.ExtrudeGeometry(shape,{steps:2,depth:1.2,bevelEnabled:true,bevelThickness:.25,bevelSize:.25,bevelSegments:6});
+ geo.center();
+ const cortexMat=new THREE.MeshPhysicalMaterial({color:0xbe123c,roughness:.3,metalness:.05,clearcoat:.5,transmission:.15,opacity:.45,transparent:true});
+ cortexMesh=new THREE.Mesh(geo,cortexMat);
+ kidneyGroup.add(cortexMesh);
+
+ const pyrMat=new THREE.MeshStandardMaterial({color:0x881337,roughness:.4});
+ for(let i=0;i<5;i++){
+  const angle=(i-2)*.42;
+  const pyr=new THREE.Mesh(new THREE.ConeGeometry(.32,1,12),pyrMat);
+  pyr.position.set(.45*Math.cos(angle),.9*Math.sin(angle),.05);
+  pyr.rotation.z=angle-Math.PI/2;
+  kidneyGroup.add(pyr);
+ }
+
+ const pelvis=new THREE.Mesh(new THREE.ConeGeometry(.55,1.2,16),new THREE.MeshStandardMaterial({color:0xfbbf24,roughness:.35}));
+ pelvis.position.set(-.35,0,.05);
+ pelvis.rotation.z=-Math.PI/2;
+ kidneyGroup.add(pelvis);
+
+ const vesselGeo=new THREE.CylinderGeometry(.12,.12,2.4,16);
+ const artery=new THREE.Mesh(vesselGeo,new THREE.MeshStandardMaterial({color:0xef4444}));
+ artery.position.set(-1.6,-.4,.1);artery.rotation.z=Math.PI/2;kidneyGroup.add(artery);
+ const vein=new THREE.Mesh(vesselGeo,new THREE.MeshStandardMaterial({color:0x38bdf8}));
+ vein.position.set(-1.6,-.7,.1);vein.rotation.z=Math.PI/2;kidneyGroup.add(vein);
+ kScene.add(kidneyGroup);
+}
+
+function animateKidney3D(){
+ requestAnimationFrame(animateKidney3D);
+ if(kControls)kControls.update();
+ if(kidneyGroup)kidneyGroup.rotation.y+=.0012;
+ updateKidneyPins();
+ if(kRenderer&&kScene&&kCamera)kRenderer.render(kScene,kCamera);
+}
+
+function renderAnatomyCards(){
+ const container=document.getElementById('anatomy-cards-list');
+ if(!container)return;
+ container.innerHTML=KIDNEY_STRUCTURES.map((item,index)=>`
+  <button id="organ-card-${item.id}" onclick="selectOrganStructure('${item.id}')"
+   class="organ-card-btn w-full text-left p-3.5 rounded-xl bg-[#0e1a30] border border-[#1e365c] hover:border-sky-400/60 transition-all">
+   <div class="flex items-center gap-3">
+    <span class="w-8 h-8 shrink-0 rounded-lg bg-[#1a3055] text-sky-300 font-mono text-[11px] font-bold flex items-center justify-center">0${index+1}</span>
+    <span class="text-xs font-bold text-slate-100 flex-1">${item.title}</span>
+    <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+   </div>
+   <div class="text-[10px] text-sky-300/80 mt-2 ml-11">Açıklamayı görüntüle</div>
+  </button>
+ `).join('');
+}
+
+function buildKidneyPins(){
+ const layer=document.getElementById('kidney-pins-layer');
+ if(!layer)return;
+ layer.innerHTML='';
+ kidneyPinEls=KIDNEY_STRUCTURES.map(item=>{
+  const btn=document.createElement('button');
+  btn.className='organ-pin pointer-events-auto px-2.5 py-1.5 rounded-full bg-[#0b1528]/90 border border-[#233d6b] shadow-md text-[10px] font-bold text-slate-100 flex items-center gap-1.5';
+  btn.innerHTML=`<span class="w-2 h-2 rounded-full bg-sky-400"></span><span>${item.title.split('(')[0].trim()}</span>`;
+  btn.onclick=()=>selectOrganStructure(item.id);
+  layer.appendChild(btn);
+  return{id:item.id,el:btn,pos:new THREE.Vector3(...item.pin3D)};
+ });
+}
+
+function updateKidneyPins(){
+ if(!kRenderer||!kCamera)return;
+ const w=kRenderer.domElement.clientWidth,h=kRenderer.domElement.clientHeight;
+ kidneyPinEls.forEach(pin=>{
+  const projected=pin.pos.clone().project(kCamera);
+  if(projected.z>1){pin.el.style.display='none';return;}
+  pin.el.style.display='flex';
+  pin.el.style.left=`${(projected.x*.5+.5)*w}px`;
+  pin.el.style.top=`${(-projected.y*.5+.5)*h}px`;
+  pin.el.classList.toggle('border-sky-400',pin.id===activeOrganId);
+ });
+}
+
+function selectOrganStructure(id){
+ const item=KIDNEY_STRUCTURES.find(s=>s.id===id);
+ if(!item)return;
+ activeOrganId=id;
+
+ document.querySelectorAll('.organ-card-btn').forEach(b=>b.classList.remove('selected'));
+ const card=document.getElementById(`organ-card-${id}`);
+ if(card)card.classList.add('selected');
+
+ // Başlık, rozet ve açıklama aynı panelde birlikte güncellenir.
+ document.getElementById('selected-organ-title').textContent=item.title;
+ document.getElementById('selected-organ-badge').textContent=item.badge;
+ document.getElementById('selected-organ-desc').textContent=item.desc;
+
+ const panel=document.getElementById('organ-explanation');
+ panel.style.animation='none';
+ void panel.offsetWidth;
+ panel.style.animation='panelIn .25s ease';
+}
+
+function toggleKidneyCutaway(){
+ isCutawayActive=!isCutawayActive;
+ document.getElementById('cutaway-label').textContent=`Korteks Şeffaflığı: ${isCutawayActive?'Açık':'Kapalı'}`;
+ if(cortexMesh){
+  cortexMesh.material.opacity=isCutawayActive?.45:.95;
+  cortexMesh.material.transparent=isCutawayActive;
+  cortexMesh.material.needsUpdate=true;
+ }
+}
+
+function resetKidneyCamera(){
+ if(kCamera&&kControls){
+  kCamera.position.set(0,1.2,8.5);
+  kControls.target.set(0,0,0);
+  kControls.update();
+ }
+}
+
+// NEFRON AŞAMALARI
+const NEPHRON_STAGE_CONTENT={
+ all:{
+  tag:'GENEL BAKIŞ · 3 TEMEL OLAY',
+  title:'İdrar oluşumu nasıl gerçekleşir?',
+  desc:'İdrar oluşumu üç temel aşamada incelenir. Süzülmede kan plazmasındaki küçük maddeler Bowman kapsülüne geçer. Geri emilimde gerekli maddeler tekrar kana alınır. Salgılamada ise bazı maddeler kandan nefron kanalına aktarılır. Simülasyonda bu üç olayın farklı yönlerde gerçekleştiğini görebilirsin.',
+  importance:'Sarı parçacıklar kapsüle geçişi, yeşil parçacıklar kanala ait maddelerin kana dönüşünü, mor parçacıklar ise kandan kanala madde aktarımını gösterir.'
+ },
+ filtration:{
+  tag:'1. AŞAMA · SÜZÜLME',
+  title:'Kandan Bowman kapsülüne geçiş',
+  desc:'Glomerulus kılcallarındaki kan basıncı, su ve küçük moleküllerin süzülerek Bowman kapsülüne geçmesini sağlar. Kan hücreleri ve büyük plazma proteinleri normal koşullarda süzüntüye geçmez. Bu olay pasif gerçekleşir ve ATP harcanmaz.',
+  importance:'Sarı parçacıklar glomerulus çevresinden Bowman kapsülüne doğru ilerler. Hareketin yönü kandan kapsüle doğrudur.'
+ },
+ reabsorption:{
+  tag:'2. AŞAMA · GERİ EMİLİM',
+  title:'Nefron kanalından kana dönüş',
+  desc:'Süzüntüde bulunan glikoz, amino asitler, su ve gerekli iyonların önemli bir kısmı nefron kanalcıklarından çevredeki kılcal damarlara geri alınır. Geri emilim hem aktif hem pasif taşıma mekanizmalarıyla gerçekleşebilir.',
+  importance:'Yeşil parçacıklar nefron kanalından dışarı, çevredeki kılcal damarlara doğru hareket eder. Bu olay vücudun gerekli maddeleri geri kazanmasını sağlar.'
+ },
+ secretion:{
+  tag:'3. AŞAMA · SALGILAMA',
+  title:'Kandan nefron kanalına aktarım',
+  desc:'Bazı maddeler çevredeki kılcal damarlardan nefron kanalına aktarılır. H⁺, K⁺ ve bazı ilaç kalıntıları bu yolla uzaklaştırılabilir. Salgılama, vücudun iyon ve asit-baz dengesinin korunmasına katkı sağlar.',
+  importance:'Mor parçacıklar kılcal damar bölgesinden nefron kanalına doğru ilerler. Bu hareket geri emilimin ters yönündedir.'
+ }
+};
+
+let nephronCanvas,nephronCtx;
+let activeNephronStage='all';
+let nephronParticles=[];
+let nephronAnimationFrame=null;
+
+function initNephronCanvas(){
+ nephronCanvas=document.getElementById('nephron-canvas');
+ if(!nephronCanvas)return;
+ nephronCtx=nephronCanvas.getContext('2d');
+
+ function resize(){
+  const parent=nephronCanvas.parentElement;
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  nephronCanvas.width=parent.clientWidth*dpr;
+  nephronCanvas.height=parent.clientHeight*dpr;
+  nephronCtx.setTransform(dpr,0,0,dpr,0,0);
+  nephronCanvas.dataset.cssWidth=parent.clientWidth;
+  nephronCanvas.dataset.cssHeight=parent.clientHeight;
+ }
+ resize();
+ window.addEventListener('resize',resize);
+
+ nephronParticles=[];
+ for(let i=0;i<54;i++){
+  nephronParticles.push({
+   progress:Math.random(),
+   speed:.0018+Math.random()*.0018,
+   type:i%3===0?'filtration':(i%3===1?'reabsorption':'secretion'),
+   offset:(Math.random()-.5)*9
+  });
+ }
+ setNephronStage('all');
+ renderNephronLoop();
+}
+
+function setNephronStage(stage){
+ activeNephronStage=stage;
+
+ document.querySelectorAll('.nephron-stage-btn').forEach(btn=>{
+  btn.classList.remove('bg-sky-500','text-[#08101e]');
+  btn.classList.add('text-slate-300');
+ });
+ const active=document.getElementById(`stage-btn-${stage}`);
+ if(active){
+  active.classList.add('bg-sky-500','text-[#08101e]');
+  active.classList.remove('text-slate-300');
+ }
+
+ const data=NEPHRON_STAGE_CONTENT[stage];
+ const panel=document.getElementById('nephron-stage-info');
+ if(panel&&data){
+  panel.innerHTML=`
+   <div>
+    <span class="inline-block px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-sky-500/15 text-sky-300 border border-sky-400/30">${data.tag}</span>
+    <h3 class="text-xl font-extrabold mt-4">${data.title}</h3>
+    <p class="text-sm text-slate-300 leading-7 mt-3">${data.desc}</p>
+   </div>
+   <div class="mt-5 p-4 rounded-2xl bg-[#0e1a30] border border-[#1e365c]">
+    <div class="text-[10px] uppercase tracking-wider font-mono text-sky-300 mb-2">Simülasyonda ne görüyorsun?</div>
+    <p class="text-xs text-slate-400 leading-relaxed">${data.importance}</p>
+   </div>
+  `;
+ }
+
+ const captions={
+  all:'Üç farklı hareket birlikte gösterilir: süzüntü kapsüle geçer, yararlı maddeler kana döner, bazı maddeler ise kandan kanala aktarılır.',
+  filtration:'Sarı parçacıklar glomerulus çevresinden Bowman kapsülüne geçer. Bu, süzülme olayını temsil eder.',
+  reabsorption:'Yeşil parçacıklar nefron kanalından çevredeki kılcal damarlara doğru çıkar. Bu, geri emilimi temsil eder.',
+  secretion:'Mor parçacıklar çevredeki kılcal damarlardan nefron kanalına doğru girer. Bu, salgılama olayını temsil eder.'
+ };
+ document.getElementById('nephron-canvas-caption').innerHTML=`<i class="fa-solid fa-circle-info text-sky-400 mr-1"></i> ${captions[stage]}`;
+}
+
+// Canvas çizim yardımcıları
+function drawArrow(ctx,x1,y1,x2,y2,color){
+ const angle=Math.atan2(y2-y1,x2-x1);
+ ctx.strokeStyle=color;
+ ctx.fillStyle=color;
+ ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+ ctx.beginPath();
+ ctx.moveTo(x2,y2);
+ ctx.lineTo(x2-9*Math.cos(angle-.45),y2-9*Math.sin(angle-.45));
+ ctx.lineTo(x2-9*Math.cos(angle+.45),y2-9*Math.sin(angle+.45));
+ ctx.closePath();ctx.fill();
+}
+
+function drawNephronTube(ctx,w,h){
+ // Bölgeler
+ ctx.fillStyle='#0f1d38';ctx.fillRect(0,0,w,h*.53);
+ ctx.fillStyle='#0b1528';ctx.fillRect(0,h*.53,w,h*.47);
+
+ ctx.font='600 10px "JetBrains Mono",monospace';
+ ctx.fillStyle='#94a3b8';
+ ctx.fillText('KORTEKS · SÜZÜLME VE KIVRIMLI TÜPLER',15,20);
+ ctx.fillText('MEDULLA · HENLE KULPU',15,h*.53+20);
+
+ // Nefron tüpü
+ ctx.strokeStyle='#233d6b';ctx.lineWidth=22;ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.beginPath();
+ ctx.moveTo(w*.19,h*.28);
+ ctx.bezierCurveTo(w*.25,h*.12,w*.35,h*.12,w*.39,h*.29);
+ ctx.bezierCurveTo(w*.42,h*.38,w*.44,h*.38,w*.46,h*.34);
+ ctx.lineTo(w*.46,h*.76);
+ ctx.bezierCurveTo(w*.46,h*.88,w*.56,h*.88,w*.56,h*.76);
+ ctx.lineTo(w*.56,h*.34);
+ ctx.bezierCurveTo(w*.62,h*.12,w*.72,h*.12,w*.77,h*.28);
+ ctx.bezierCurveTo(w*.81,h*.38,w*.84,h*.28,w*.87,h*.23);
+ ctx.stroke();
+
+ // Tüpün iç ışık hattı
+ ctx.strokeStyle='#52739d';ctx.lineWidth=2;ctx.setLineDash([4,7]);
+ ctx.beginPath();
+ ctx.moveTo(w*.19,h*.28);
+ ctx.bezierCurveTo(w*.25,h*.12,w*.35,h*.12,w*.39,h*.29);
+ ctx.bezierCurveTo(w*.42,h*.38,w*.44,h*.38,w*.46,h*.34);
+ ctx.lineTo(w*.46,h*.76);
+ ctx.bezierCurveTo(w*.46,h*.88,w*.56,h*.88,w*.56,h*.76);
+ ctx.lineTo(w*.56,h*.34);
+ ctx.bezierCurveTo(w*.62,h*.12,w*.72,h*.12,w*.77,h*.28);
+ ctx.bezierCurveTo(w*.81,h*.38,w*.84,h*.28,w*.87,h*.23);
+ ctx.stroke();
+ ctx.setLineDash([]);
+
+ // Bowman kapsülü
+ ctx.beginPath();ctx.strokeStyle='#fbbf24';ctx.lineWidth=3;
+ ctx.ellipse(w*.15,h*.28,31,25,0,0,Math.PI*2);ctx.stroke();
+
+ // Glomerulus yumak çizimi
+ ctx.strokeStyle='#ef647b';ctx.lineWidth=3;
+ for(let i=0;i<4;i++){
+  ctx.beginPath();
+  ctx.ellipse(w*.15+(i-1.5)*5,h*.28,10,14,Math.PI/4*i,0,Math.PI*2);
+  ctx.stroke();
+ }
+
+ // Çevre kılcal damarları
+ ctx.strokeStyle='#a855f7';ctx.lineWidth=5;ctx.globalAlpha=.65;
+ ctx.beginPath();
+ ctx.moveTo(w*.32,h*.55);
+ ctx.bezierCurveTo(w*.28,h*.68,w*.34,h*.84,w*.43,h*.84);
+ ctx.bezierCurveTo(w*.55,h*.94,w*.65,h*.68,w*.68,h*.52);
+ ctx.stroke();
+ ctx.beginPath();
+ ctx.moveTo(w*.59,h*.53);
+ ctx.bezierCurveTo(w*.67,h*.65,w*.73,h*.76,w*.82,h*.62);
+ ctx.stroke();
+ ctx.globalAlpha=1;
+
+ // Yapı isimleri
+ ctx.font='bold 11px "Plus Jakarta Sans",sans-serif';
+ ctx.fillStyle='#f8fafc';
+ ctx.fillText('Glomerulus',w*.035,h*.12);
+ ctx.fillStyle='#fbbf24';
+ ctx.fillText('Bowman',w*.17,h*.18);
+ ctx.fillStyle='#cbd5e1';
+ ctx.fillText('Proksimal tüp',w*.27,h*.46);
+ ctx.fillText('Henle kulpu',w*.43,h*.95);
+ ctx.fillText('Distal tüp',w*.64,h*.45);
+ ctx.fillText('Toplama kanalı',w*.77,h*.15);
+
+ // Kılcal damar açıklaması
+ ctx.font='10px "Plus Jakarta Sans",sans-serif';
+ ctx.fillStyle='#c084fc';
+ ctx.fillText('Çevre kılcalları',w*.27,h*.72);
+}
+
+function getTubePoint(t,w,h){
+ // Tüp güzergâhında ilerleyen bir nokta
+ if(t<.23){
+  const q=t/.23;
+  return{x:w*(.19+q*.20),y:h*(.28+Math.sin(q*Math.PI)*-.06)};
+ }else if(t<.42){
+  const q=(t-.23)/.19;
+  return{x:w*(.39+q*.07),y:h*(.29+q*.08)};
+ }else if(t<.68){
+  const q=(t-.42)/.26;
+  return{x:w*.46,y:h*(.37+q*.39)};
+ }else if(t<.82){
+  const q=(t-.68)/.14;
+  return{x:w*(.46+q*.10),y:h*(.76+Math.sin(q*Math.PI)*.11)};
+ }else{
+  const q=(t-.82)/.18;
+  return{x:w*(.56+q*.23),y:h*(.76-q*.48)};
+ }
+}
+
+function drawParticle(ctx,x,y,color,r=4){
+ ctx.beginPath();
+ ctx.fillStyle=color;
+ ctx.shadowColor=color;
+ ctx.shadowBlur=12;
+ ctx.arc(x,y,r,0,Math.PI*2);
+ ctx.fill();
+ ctx.shadowBlur=0;
+}
+
+function renderNephronLoop(){
+ if(!nephronCtx||!nephronCanvas)return;
+
+ const w=Number(nephronCanvas.dataset.cssWidth)||nephronCanvas.clientWidth;
+ const h=Number(nephronCanvas.dataset.cssHeight)||nephronCanvas.clientHeight;
+ const ctx=nephronCtx;
+ ctx.clearRect(0,0,w,h);
+ drawNephronTube(ctx,w,h);
+
+ const colors={filtration:'#fbbf24',reabsorption:'#34d399',secretion:'#c084fc'};
+
+ // Filtrasyon: glomerulus -> Bowman kapsülü -> tüp başlangıcı
+ function filtrationPoint(t){
+  if(t<.48){
+   const q=t/.48;
+   return{x:w*(.15+q*.045),y:h*(.28-q*.02)};
+  }
+  const q=(t-.48)/.52;
+  return{x:w*(.195+q*.19),y:h*(.28+Math.sin(q*Math.PI)*-.02)};
+ }
+
+ // Reabsorbsiyon: tüp duvarından çevre kılcalına doğru dışarı
+ function reabsorptionPoint(t){
+  const p=getTubePoint(.12+t*.65,w,h);
+  const targetX=p.x+(p.x>w*.45?-48:45);
+  const targetY=p.y+(p.y>h*.52?-24:35);
+  return{x:p.x+(targetX-p.x)*t,y:p.y+(targetY-p.y)*t};
+ }
+
+ // Sekresyon: çevre kılcalından tüpün içine doğru
+ function secretionPoint(t){
+  const p=getTubePoint(.72,w,h);
+  const startX=p.x+55;
+  const startY=p.y-35;
+  return{x:startX+(p.x-startX)*t,y:startY+(p.y-startY)*t};
+ }
+
+ nephronParticles.forEach(p=>{
+  p.progress=(p.progress+p.speed)%1;
+  if(activeNephronStage!=='all'&&p.type!==activeNephronStage)return;
+
+  let point;
+  if(p.type==='filtration')point=filtrationPoint(p.progress);
+  else if(p.type==='reabsorption')point=reabsorptionPoint(p.progress);
+  else point=secretionPoint(p.progress);
+
+  drawParticle(ctx,point.x+p.offset,point.y,colors[p.type],4.2);
+ });
+
+ // Seçilen aşamaya göre yön okları
+ if(activeNephronStage==='filtration'||activeNephronStage==='all'){
+  drawArrow(ctx,w*.15,h*.39,w*.21,h*.39,'#fbbf24');
+ }
+ if(activeNephronStage==='reabsorption'||activeNephronStage==='all'){
+  drawArrow(ctx,w*.42,h*.59,w*.34,h*.64,'#34d399');
+ }
+ if(activeNephronStage==='secretion'||activeNephronStage==='all'){
+  drawArrow(ctx,w*.73,h*.56,w*.65,h*.48,'#c084fc');
+ }
+
+ nephronAnimationFrame=requestAnimationFrame(renderNephronLoop);
+}
+
+// ADH SİMÜLASYONU
+function setWaterPreset(value){
+ document.getElementById('slider-water').value=value;
+ updateHomeostaziLab();
+}
+
+function updateHomeostaziLab(){
+ const val=parseFloat(document.getElementById('slider-water').value);
+ document.getElementById('label-water').textContent=`${val.toFixed(1)} Litre`;
+
+ const osmotic=document.getElementById('out-osmotic');
+ const adh=document.getElementById('out-adh');
+ const vol=document.getElementById('out-urine-vol');
+ const conc=document.getElementById('out-urine-conc');
+ const fill=document.getElementById('urine-liquid-fill');
+ const feedback=document.getElementById('out-feedback-text');
+
+ if(val<1.3){
+  osmotic.textContent='Yüksek';osmotic.className='text-lg font-extrabold text-amber-300 mt-2';
+  adh.textContent='Artmış';adh.className='text-lg font-extrabold text-amber-300 mt-2';
+  vol.textContent='Az miktarda';conc.textContent='Daha yoğun idrar';
+  fill.style.height='28%';fill.style.background='#f59e0b';
+  feedback.textContent='Su alımının düşük olduğu senaryoda kanın ozmotik basıncı yükselir. Hipotalamus bu değişimi algılar ve ADH salgısı artar. Toplama kanallarından suyun geri emilimi artar. Sonuç olarak daha az miktarda ve daha yoğun idrar oluşur.';
+ }else if(val>3.0){
+  osmotic.textContent='Düşük';osmotic.className='text-lg font-extrabold text-sky-300 mt-2';
+  adh.textContent='Azalmış';adh.className='text-lg font-extrabold text-sky-300 mt-2';
+  vol.textContent='Fazla miktarda';conc.textContent='Daha seyreltik idrar';
+  fill.style.height='88%';fill.style.background='#38bdf8';
+  feedback.textContent='Su alımının yüksek olduğu senaryoda kanın ozmotik basıncı düşer. ADH salgısı azalır. Toplama kanallarından daha az su geri emilir ve fazla su idrarla uzaklaştırılır. Böylece daha fazla miktarda ve seyreltik idrar oluşur.';
+ }else{
+  osmotic.textContent='Normal';osmotic.className='text-lg font-extrabold text-emerald-300 mt-2';
+  adh.textContent='Dengeli';adh.className='text-lg font-extrabold text-sky-300 mt-2';
+  vol.textContent='Normal miktarda';conc.textContent='Normal yoğunluk';
+  fill.style.height='55%';fill.style.background='#fde047';
+  feedback.textContent='Su alımının dengeli olduğu senaryoda ADH salgısı da uygun düzeyde gerçekleşir. Böbrekler gerekli miktarda suyu geri emer ve vücudun sıvı dengesi korunur.';
+ }
+}
+
+// BİLGİ TESTİ
+const CONCEPT_CHECKS=[
+ {
+  question:'Sağlıklı bir insanın idrarında glikoz bulunmamasının temel nedeni nedir?',
+  options:['Glikoz glomerulustan süzülemez.','Glikoz proksimal tüpte geri emilir.','Glikoz Henle kulpunda parçalanır.','Glikoz böbrek toplardamarında tutulur.'],
+  correct:1,
+  note:'Glikoz küçük molekül olduğu için glomerulustan süzülür. Sağlıklı bireylerde proksimal tüpte geri emildiği için normal koşullarda idrarda bulunmaz.'
+ },
+ {
+  question:'Kanın ozmotik basıncı arttığında ADH salgısında nasıl bir değişiklik olur?',
+  options:['ADH salgısı artar ve su geri emilimi yükselir.','ADH salgısı tamamen durur.','İdrar üretimi tamamen durur.','Glikozun süzülmesi engellenir.'],
+  correct:0,
+  note:'Kanın ozmotik basıncı yükseldiğinde ADH salgısı artar. Böylece böbrek toplama kanallarından suyun geri emilimi artar.'
+ },
+ {
+  question:'Glomerulus kılcallarından Bowman kapsülüne normal koşullarda hangisi geçemez?',
+  options:['Su','Glikoz','Üre','Alyuvarlar'],
+  correct:3,
+  note:'Alyuvarlar ve büyük plazma proteinleri süzülme zarını aşamaz. Su ve küçük moleküller süzüntüye geçebilir.'
+ },
+ {
+  question:'Kandaki H⁺ iyonu miktarı arttığında böbrekler ne yapabilir?',
+  options:['H⁺ iyonlarını nefron kanalına salgılayabilir.','H⁺ iyonlarının tamamını kana geri verir.','Süzülmeyi tamamen durdurur.','İdrar oluşumunu sona erdirir.'],
+  correct:0,
+  note:'Böbrekler fazla H⁺ iyonlarını nefron kanalına salgılayarak asit-baz dengesinin korunmasına yardımcı olur.'
+ },
+ {
+  question:'Getirici atardamarın götürücü atardamardan daha geniş olması ne sağlar?',
+  options:['Glomerulusta süzülmeyi sağlayan yüksek kan basıncına katkıda bulunur.','İdrar kesesinin kasılmasını sağlar.','Üre sentezini gerçekleştirir.','Böbreğin oksijen ihtiyacını ortadan kaldırır.'],
+  correct:0,
+  note:'Getirici atardamarın daha geniş olması glomerulus kılcallarında yüksek kan basıncı oluşmasına katkı sağlar. Bu basınç süzülmeyi destekler.'
+ }
+];
+
+let checkIdx=0,checkScore=0,checkLocked=false;
+
+function renderConceptCheck(){
+ checkLocked=false;
+ const item=CONCEPT_CHECKS[checkIdx];
+ document.getElementById('check-step-label').textContent=`Soru ${checkIdx+1} / ${CONCEPT_CHECKS.length}`;
+ document.getElementById('check-question-text').textContent=item.question;
+ document.getElementById('check-feedback-box').classList.add('hidden');
+ document.getElementById('check-next-btn').classList.add('hidden');
+ document.getElementById('quiz-progress').style.width=`${((checkIdx+1)/CONCEPT_CHECKS.length)*100}%`;
+
+ const letters=['A','B','C','D'];
+ document.getElementById('check-options-list').innerHTML=item.options.map((option,index)=>`
+  <button onclick="selectConceptOption(${index})" class="check-opt w-full text-left p-3.5 rounded-xl bg-[#0e1a30] border border-[#1e365c] hover:border-sky-400 text-sm text-slate-100 transition flex items-center gap-3">
+   <span class="w-8 h-8 rounded-lg bg-[#1a3055] text-sky-300 font-mono text-xs font-bold flex items-center justify-center shrink-0">${letters[index]}</span>
+   <span>${option}</span>
+  </button>
+ `).join('');
+}
+
+function selectConceptOption(chosen){
+ if(checkLocked)return;
+ checkLocked=true;
+ const item=CONCEPT_CHECKS[checkIdx];
+ const buttons=document.querySelectorAll('.check-opt');
+
+ buttons.forEach((btn,index)=>{
+  btn.disabled=true;
+  if(index===item.correct)btn.classList.add('bg-emerald-500/15','border-emerald-400','text-emerald-200');
+  else if(index===chosen)btn.classList.add('bg-rose-500/15','border-rose-400','text-rose-200');
+ });
+
+ const feedback=document.getElementById('check-feedback-box');
+ feedback.classList.remove('hidden');
+
+ if(chosen===item.correct){
+  checkScore++;
+  document.getElementById('check-score-label').textContent=`Doğru: ${checkScore}`;
+  feedback.className='mt-5 p-4 rounded-2xl text-sm leading-relaxed border bg-emerald-500/10 border-emerald-400/40 text-emerald-200';
+  feedback.innerHTML=`<strong><i class="fa-solid fa-circle-check mr-1"></i> Doğru cevap!</strong><br>${item.note}`;
+ }else{
+  feedback.className='mt-5 p-4 rounded-2xl text-sm leading-relaxed border bg-rose-500/10 border-rose-400/40 text-rose-200';
+  feedback.innerHTML=`<strong><i class="fa-solid fa-circle-info mr-1"></i> Açıklama</strong><br>${item.note}`;
+ }
+
+ const next=document.getElementById('check-next-btn');
+ next.classList.remove('hidden');
+ next.innerHTML=checkIdx<CONCEPT_CHECKS.length-1?'Sonraki soru <i class="fa-solid fa-arrow-right ml-1"></i>':'Testi tamamla <i class="fa-solid fa-check ml-1"></i>';
+}
+
+function nextConceptQuestion(){
+ if(checkIdx<CONCEPT_CHECKS.length-1){
+  checkIdx++;
+  renderConceptCheck();
+ }else{
+  document.getElementById('check-question-text').innerHTML=`
+   <div class="text-center py-5">
+    <div class="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 flex items-center justify-center mx-auto text-3xl mb-4"><i class="fa-solid fa-award"></i></div>
+    <div class="text-2xl font-extrabold mb-2">Test tamamlandı!</div>
+    <p class="text-sm text-slate-400">5 sorudan <strong class="text-sky-300">${checkScore}</strong> tanesini doğru yanıtladın.</p>
+    <p class="text-xs text-slate-500 mt-2">Bilgilerini pekiştirmek için testi tekrar çözebilirsin.</p>
+   </div>`;
+  document.getElementById('check-options-list').innerHTML='';
+  document.getElementById('check-feedback-box').classList.add('hidden');
+  document.getElementById('check-next-btn').classList.add('hidden');
+  document.getElementById('check-step-label').textContent='Tamamlandı';
+  document.getElementById('quiz-progress').style.width='100%';
+ }
+}
+
+function resetConceptCheck(){
+ checkIdx=0;checkScore=0;
+ document.getElementById('check-score-label').textContent='Doğru: 0';
+ renderConceptCheck();
+}
+
+// BAŞLAT
+window.addEventListener('load',()=>{
+ initKidney3D();
+ animateKidney3D();
+ initNephronCanvas();
+ updateHomeostaziLab();
+ renderConceptCheck();
+});
+</script>
+</body>
+</html>
